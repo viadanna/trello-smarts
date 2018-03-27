@@ -5,66 +5,62 @@ Bringing artificial intelligence to your boards and cards.
 
 A proof of concept assistant that suggests labels based on card titles.
 
-Notice that this is a work in progress and contains just the backend for now.
+Notice that this is a work in progress, but is functional.
 
 Usage:
 ------
 
-This application can be run using Docker composer and using the API endpoint
-at port 8080.
+This application can be deployed to Heroku.
 
 Before building service, make sure to update `settings.py` with
 the developer key and token to be used.
 ```
 {
-    "key": "your developer key",
-    "token": "authorization token"
+    "key": "your developer key"
 }
 ```
 
-Starting the service:
-```
-$ docker-composer up
-```
+The key must also be updated in `public/auth.html:13`
 
-Predict labels for card based on the given board cards and labels
+There's a live server that can be used for testing by creating a power-up
+with url:
 ```
-$ curl "localhost:8080/predict?board=<board_id>&text=<card_title>"
+https://pure-wave-30477.herokuapp.com/index.html
 ```
-
 
 Implementation:
 ---------------
 
 The current proof of concept implementation takes a board id and card title
 to generate a prediction. It then queries Trello restful API to fetch all cards
-for the given board, storing their titles and labels. Finally, it vectorizes
-the titles and uses cosine distance to find the most similar, returning its
-labels.
+for the given board, storing their titles and labels. Finally, it find the
+term frequency/inverse document frequency vectors for the titles and uses
+cosine distance to find the most similar, returning its labels.
 
 Contents:
 ---------
 
-+ backend/main.py
++ server.py
     Web service implementation.
 
-+ backend/recommender.py
++ recommender.py
     Label recommendation implementation.
 
-+ backend/requirements.txt
++ requirements.txt
     List of python libraries needed.
 
-+ backend/settings.py
-    Configuration variables.
++ settings.py
+    Configuration.
 
-+ backend/tests.py
++ tests.py
     Unit testing.
 
-+ docker-compose.yml
-    Docker composer configuration to run service.
++ public/index.html
+    Trello power-up main point of entry.
 
-+ Dockerfile
-    Docker configuration for container.
++ public/auth.html
+    Power-up authentication.
+
 
 Requirements:
 -------------
