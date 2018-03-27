@@ -16,7 +16,7 @@ class RecommenderTesting(unittest.TestCase):
         ]
         self.y = [
             ['aa11bcde'],
-            [],
+            ['aa11bcde', 'bb22cdef'],
             ['bb22cdef']
         ]
         self.rec = Recommender().fit(self.x, self.y)

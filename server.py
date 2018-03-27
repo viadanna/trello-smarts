@@ -1,5 +1,6 @@
 import json
 import os
+import re
 
 from bottle import Bottle, abort, debug, request, static_file
 from requests import get, post
@@ -9,6 +10,7 @@ from recommender import Recommender
 app = Bottle()
 debug(True)
 
+card_url = "https://api.trello.com/1/cards/{}"
 cards_url = "https://api.trello.com/1/boards/{}/cards"
 label_url = "https://api.trello.com/1/cards/{}/idLabels"
 
@@ -16,39 +18,51 @@ with open('settings.json') as f:
     settings = json.load(f)
 
 
-@app.get('/predict')
-def predict():
+def get_text(card):
+    name = card['name']
+    desc = card['desc'].replace('\n', ' ')
+    text = '{} {}'.format(name, desc)
+    text = text.lower()
+    text = re.sub(r'[^\w\s]', '', text)
+    return text
+
+
+@app.get('/predict/<card_id>')
+def predict(card_id):
     """
     Label predicting endpoint, requires query strings:
         + board: the id of the board for reference
         + text: card text for the prediction
     """
-    token = request.query.token
+    token = request.query.token  # pylint disable=E1101
     if not token:
         abort(400, 'Missing token')
-    board = request.query.board
-    if not board:
-        abort(400, 'Missing board')
-    card = request.query.card
-    if not card:
-        abort(400, 'Missing card')
-    text = request.query.text
-    if not text:
-        abort(400, 'Missing card title')
+
+    # Fetch card name and full description
+    card = get(
+        card_url.format(card_id),
+        params={'key': settings['key'], 'token': token}
+    ).json()
+
+    # Fetch all cards in board
+    board = card['idBoard']
     cards = get(
         cards_url.format(board),
         params={'key': settings['key'], 'token': token}
     ).json()
-    x_train = [c['name'] for c in cards if c['id'] != card]
+
+    # Train model with board cards
+    x_train = [get_text(c) for c in cards if c['id'] != card]
     y_train = [c['idLabels'] for c in cards]
     rec = Recommender().fit(x_train, y_train)
-    labels = rec.predict([text])[0]
+
+    # Predict labels for given card
+    labels = rec.predict([get_text(card)])[0]
     for label in labels:
-        res = post(
-            label_url.format(card),
+        post(
+            label_url.format(card_id),
             params={'value': label, 'key': settings['key'], 'token': token}
         )
-        print(res.text)
     return json.dumps(labels)
 
 

@@ -31,11 +31,16 @@ https://pure-wave-30477.herokuapp.com/index.html
 Implementation:
 ---------------
 
-The current proof of concept implementation takes a board id and card title
-to generate a prediction. It then queries Trello restful API to fetch all cards
-for the given board, storing their titles and labels. Finally, it find the
-term frequency/inverse document frequency vectors for the titles and uses
-cosine distance to find the most similar, returning its labels.
+The current proof of concept implementation takes a card id, which is used to
+retrieve the necessary card information, along with the cards in the same
+bard.
+
+Then it calculates the term frequency/inverse document frequency vectors
+for the titles and descriptions of all cards. These are used to calculate
+the cosine distance between each card and the one we want to tag.
+
+Finally, each card get to vote in their label set, weighted by the similarity,
+and the one that achieves the highest score is applied to the card.
 
 Contents:
 ---------

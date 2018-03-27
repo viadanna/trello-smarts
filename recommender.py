@@ -1,6 +1,6 @@
+from collections import defaultdict
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-import numpy as np
 
 
 class Recommender(object):
@@ -30,5 +30,16 @@ class Recommender(object):
         """
         query = self.__vec__.transform(x)
         similarity = cosine_similarity(query, self._tfidf)
-        most_similar = np.argmax(similarity, axis=1)
-        return [self._y[i] for i in most_similar]
+        results = []
+        for result in similarity:
+            # Make all results vote instead of just the best one
+            votes = defaultdict(float)
+            for labels, sim in zip(self._y, result):
+                if not labels:
+                    # Always return a label
+                    continue
+                key = tuple(labels)
+                votes[key] += sim
+            most_similar = max(votes.items(), key=lambda x: x[1])
+            results.append(list(most_similar[0]))
+        return results

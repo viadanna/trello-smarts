@@ -10,7 +10,7 @@
       var Promise = TrelloPowerUp.Promise;
       var t = TrelloPowerUp.iframe();
       
-      var trelloAuthUrl = 'https://trello.com/1/authorize?expiration=never&name=Trello%20Assistant&scope=read,write&key=<api_key>&callback_method=fragment&return_url=https%3A%2F%2F' + window.location.host + '%2Fauth-success.html';
+      var trelloAuthUrl = 'https://trello.com/1/authorize?expiration=never&name=Trello%20Assistant&scope=read,write&key=<your_app_key>&callback_method=fragment&return_url=https%3A%2F%2F' + window.location.host + '%2Fauth-success.html';
       
       var tokenLooksValid = function(token) {
         return /^[0-9a-f]{64}$/.test(token);
@@ -23,12 +23,21 @@
           return t.set('member', 'private', 'token', token)
         })
         .then(function(){
-          // now that we have the token we needed lets go on to letting
-          // the user set the snooze time
-          return t.popup({
-            title: 'Change Snooze Time',
-            url: './set-snooze.html',
-            height: 411
+          // Send card id to backend
+          t.card('id').then((card) => {
+            var params = $.param({
+              token: token
+            });
+            $.ajax({
+              url: `/predict/${card.id}?${params}`,
+              type: 'GET',
+              success: function() {
+                console.log('Success');
+              },
+              error: function(err) {
+                console.error('Error predicting: ' + JSON.stringify(err));
+              }
+            });
           });
         });
       });

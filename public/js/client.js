@@ -25,27 +25,22 @@ TrelloPowerUp.initialize({
               height: 75
             });
           } else {
-            // TODO Get tags and update card
-            t.board('id').then((board) => {
-              t.card('id', 'name').then((card) => {
-                var params = $.param({
-                  token: token,
-                  board: board.id,
-                  card: card.id,
-                  text: card.name
-                });
-                $.ajax({
-                  url: `/predict?` + params,
-                  type: 'GET',
-                  success: function() {
-                    console.log('Success');
-                  },
-                  error: function(err) {
-                    console.error('Error deleting from server: ' + JSON.stringify(err));
-                  }
-                });
+            // Send card id to backend
+            t.card('id').then((card) => {
+              var params = $.param({
+                token: token
               });
-            })
+              $.ajax({
+                url: `/predict/${card.id}?${params}`,
+                type: 'GET',
+                success: function() {
+                  console.log('Success');
+                },
+                error: function(err) {
+                  console.error('Error predicting: ' + JSON.stringify(err));
+                }
+              });
+            });
           }
         }
       }];
