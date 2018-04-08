@@ -12,13 +12,8 @@ Usage:
 
 This application can be deployed to Heroku.
 
-Before building service, make sure to update `settings.py` with
-the developer key and token to be used.
-```
-{
-    "key": "your developer key"
-}
-```
+Before building service, make sure to update `.env` with
+the developer key to be used.
 
 The key must also be updated in `public/auth.html:13`
 

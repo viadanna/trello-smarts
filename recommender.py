@@ -14,6 +14,7 @@ class Recommender(object):
         """
         self.__vec__ = TfidfVectorizer()
         self._tfidf = None
+        self._x = None
         self._y = None
 
     def fit(self, x, y):
@@ -21,6 +22,7 @@ class Recommender(object):
         Store given documents and labels
         """
         self._tfidf = self.__vec__.fit_transform(x)
+        self._x = x
         self._y = y
         return self
 
@@ -31,15 +33,21 @@ class Recommender(object):
         query = self.__vec__.transform(x)
         similarity = cosine_similarity(query, self._tfidf)
         results = []
-        for result in similarity:
+        for i, result in enumerate(similarity):
+            try:
+                current = self._y[self._x.index(x[i])]
+            except ValueError:
+                current = []
             # Make all results vote instead of just the best one
-            votes = defaultdict(float)
+            votes = defaultdict(list)
             for labels, sim in zip(self._y, result):
-                if not labels:
-                    # Always return a label
-                    continue
-                key = tuple(labels)
-                votes[key] += sim
-            most_similar = max(votes.items(), key=lambda x: x[1])
-            results.append(list(most_similar[0]))
+                for label in labels:
+                    votes[label].append(sim)
+            votes_norm = {
+                label: sum(votes)/len(votes)  # Might make more sense than sum
+                for label, votes in votes.items()
+                if label not in current
+            }
+            most_similar = max(votes_norm.items(), key=lambda x: x[1])
+            results.append([most_similar[0]])
         return results

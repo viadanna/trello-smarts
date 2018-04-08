@@ -14,8 +14,8 @@ card_url = "https://api.trello.com/1/cards/{}"
 cards_url = "https://api.trello.com/1/boards/{}/cards"
 label_url = "https://api.trello.com/1/cards/{}/idLabels"
 
-with open('settings.json') as f:
-    settings = json.load(f)
+with open('.env') as f:
+    settings = dict(line.split('=', 1) for line in f.readlines())
 
 
 def get_text(card):
@@ -41,14 +41,14 @@ def predict(card_id):
     # Fetch card name and full description
     card = get(
         card_url.format(card_id),
-        params={'key': settings['key'], 'token': token}
+        params={'key': settings['KEY'], 'token': token}
     ).json()
 
     # Fetch all cards in board
     board = card['idBoard']
     cards = get(
         cards_url.format(board),
-        params={'key': settings['key'], 'token': token}
+        params={'key': settings['KEY'], 'token': token}
     ).json()
 
     # Train model with board cards
@@ -61,7 +61,7 @@ def predict(card_id):
     for label in labels:
         post(
             label_url.format(card_id),
-            params={'value': label, 'key': settings['key'], 'token': token}
+            params={'value': label, 'key': settings['KEY'], 'token': token}
         )
     return json.dumps(labels)
 
